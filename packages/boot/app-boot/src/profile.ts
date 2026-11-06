@@ -303,9 +303,14 @@ function pointsInto(link: string, root: string): boolean {
   }
 }
 
+/** Read a `package.json` as text, dropping a leading byte-order mark that `JSON.parse` rejects. */
+function readManifestText(path: string): string {
+  return readFileSync(path, 'utf8').replace(/^\uFEFF/u, '')
+}
+
 /** Read one package manifest while traversing a dependency graph. */
 function readPackageManifest(anchor: string): ProfileManifest {
-  return JSON.parse(readFileSync(anchor, 'utf8')) as ProfileManifest
+  return JSON.parse(readManifestText(anchor)) as ProfileManifest
 }
 
 /** Return dependency names that may be imported by a loader-visible plugin. */
@@ -549,7 +554,7 @@ export function readProfileManifest(binName: string, dir: string): ProfileManife
   const path = join(dir, 'package.json')
   let raw: string
   try {
-    raw = readFileSync(path, 'utf8')
+    raw = readManifestText(path)
   } catch (error) {
     throw new Error(`${binName}: failed to read profile manifest ${path}: ${String(error)}`)
   }

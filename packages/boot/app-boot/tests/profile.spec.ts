@@ -251,6 +251,14 @@ describe('manifest round-trip', () => {
     expect(() => readProfileManifest('t', dir)).toThrow('must hold a JSON object')
     expect(() => readProfileManifest('t', join(dir, 'nope'))).toThrow('failed to read profile manifest')
   })
+
+  it('reads a manifest that carries a leading byte-order mark', () => {
+    const dir = tmp()
+    writeProfileManifest(dir, { name: 'p', dsh: { profile: { bundles: ['a'] } } })
+    const path = join(dir, 'package.json')
+    writeFileSync(path, `\uFEFF${readFileSync(path, 'utf8')}`)
+    expect(readProfileManifest('t', dir).dsh?.profile?.bundles).toEqual(['a'])
+  })
 })
 
 describe('resolveBundleDir', () => {
